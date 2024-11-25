@@ -1,0 +1,12 @@
+pageobjects\RegistrationPage.class
+pageobjects\Browsers.class
+tests\LogoutTest.class
+tests\PersonalCabinetTest.class
+tests\PersonalCabinetToConstructorTest.class
+pageobjects\WebDriverManager.class
+tests\ConstructorSectionsTest.class
+tests\SpecificationTest.class
+pageobjects\StellarBurgersPage.class
+tests\StellarBurgersTest.class
+tests\SignInTest.class
+pageobjects\ConstructorPage.class

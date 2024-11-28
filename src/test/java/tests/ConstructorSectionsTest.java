@@ -1,42 +1,57 @@
 package tests;
 
 import io.qameta.allure.Step;
+import io.qameta.allure.junit4.DisplayName;;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import pageobjects.Browsers;
-import java.util.Collection;
-import static org.junit.Assert.assertEquals;
+import org.openqa.selenium.WebDriver;
+import pageobjects.ConstructorPage;
+import pageobjects.WebDriverCreator;;
+import static pageobjects.Api.MAIN_PAGE;
+public class ConstructorSectionsTest {
+    private WebDriver driver;
+    private ConstructorPage constructorPage;
 
-@RunWith(Parameterized.class)
-public class  ConstructorSectionsTest extends SpecificationTest {
-    @Parameterized.Parameters
-    public static Collection<Object[]> data() {
-        return Browsers.getBrowserData();
-    }
-    public  ConstructorSectionsTest(String browser) {
-        super(browser);
-    }
+    @Step("Подготовка данных и браузера")
+    @Before
+    public void setUp() {
+        String browser = System.getProperty("browser", "chrome");
+        driver = WebDriverCreator.createWebDriver(browser);
+        driver.get(MAIN_PAGE);
+        driver.manage().window().maximize();
 
-    @Test
-    @Step("Проверка перехода в раздел 'Соусы'")
-    public void testSaucesSection() {
-        constructorPage.selectSaucesSection();
-        assertEquals("Соусы", constructorPage.getSaucesHeaderText());
+        constructorPage = new ConstructorPage(driver);
     }
 
-    @Test
-    @Step("Проверка перехода в раздел 'Начинки'")
-    public void testFillingsSection() {
-        constructorPage.selectFillingsSection();
-        assertEquals("Начинки", constructorPage.getFillingsHeaderText());
-    }
+    @Step("Закрытие браузера")
+@After
+public void tearDown() {
+    driver.quit();
+}
 
-    @Test
-    @Step("Проверка перехода в раздел 'Булки'")
-    public void testBunsSection() {
-        constructorPage.selectFillingsSection();
-        constructorPage.selectBunsSection();
-        assertEquals("Булки", constructorPage.getBunsHeaderText());
-    }
+@Test
+@DisplayName("Переход к разделу Булки")
+public void bunSectionTest() {
+    constructorPage.clickSauceButton();
+   constructorPage.clickBunsButton();
+    boolean isBunsChoiceSectionVisible = constructorPage.isChoiceSectionVisible();
+    Assert.assertTrue(isBunsChoiceSectionVisible);
+}
+@Test
+@DisplayName("Переход к разделу Соусы")
+public void sauceSectionTest() {
+    constructorPage.clickSauceButton();
+    boolean isSauceChoiceSectionVisible = constructorPage.isChoiceSectionVisible();
+    Assert.assertTrue(isSauceChoiceSectionVisible);
+}
+@Test
+@DisplayName("Переход к разделу Начинки")
+public void fillingSectionTest() {
+    constructorPage.clickFillingButton();
+    boolean isFillingChoiceSectionVisible = constructorPage.isChoiceSectionVisible();
+    Assert.assertTrue(isFillingChoiceSectionVisible);
+}
+
 }

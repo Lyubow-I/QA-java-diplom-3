@@ -1,127 +1,100 @@
 package pageobjects;
 
+import io.qameta.allure.Step;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 
 public class StellarBurgersPage {
     private final WebDriver driver;
+    private final By loginText = By.xpath(".//main/div/h2");
+    private final By emailField = By.xpath(".//*[@type='text']");
+    private final By passwordField = By.xpath(".//*[@type='password']");
+    private final By loginButton = By.xpath("//div/form/button");
+    private final By registerButton = By.xpath("//div/p[1]/*[@href='/register']");
+    private final By recoverButton = By.xpath("//div/p[2]/*[@href='/forgot-password']");
+    private final By enterHeader = By.xpath("//h2[contains(text(),'Вход')]");
+    private final By constructorButton = By.xpath(".//p[text() = 'Конструктор']");
+    private final By profileButton = By.xpath(".//a[text() = 'Профиль']");
+    private final By logoutButton = By.xpath(".//nav[starts-with(@class, 'Account_nav')]/ul/li/button");
+    private final By logoButton = By.xpath(".//header/nav/div");
+    private final By modalOverlay = By.xpath(".//div[starts-with(@class, 'App_App')]/div/div[starts-with(@class, 'Modal_modal_overlay')]");
 
-// Локатор для кнопки "Войти в аккаунт"
-@FindBy(xpath = "//button[contains(text(),'Войти в аккаунт')]")
-private WebElement loginButton;
+    public StellarBurgersPage(WebDriver driver) {
+        this.driver = driver;
+    }
+    @Step("Заполнить поле Email")
+    public void setEmail(String email) {
+        driver.findElement(emailField).sendKeys(email);
+    }
 
-// Локатор для кнопки регистрации
-@FindBy(xpath = "//*[@id=\"root\"]/div/main/div/div/p[1]/a")
-private WebElement registerButton;
+    @Step("Заполнить поле Пароль")
+    public void setPassword(String password) {
+        driver.findElement(passwordField).sendKeys(password);
+    }
 
-// Локатор для кнопки "Личный Кабинет"
-@FindBy(xpath = "//*[@id=\"root\"]/div/header/nav/a/p")
-private WebElement personalCabinetButton;
-
-// Локатор для кнопки "Войти" в форме регитрации
-@FindBy(xpath = "//a[text()='Войти']")
-private WebElement loginButton2;
-
-// Локатор для поля ввода email
-@FindBy(xpath = "//*[@id=\"root\"]/div/main/div/form/fieldset[1]/div/div/input")
-private WebElement emailInput;
-
-// Локатор для поля ввода пароля
-@FindBy(xpath = "//input[@type='password']")
-private WebElement passwordInput;
-
-// Локатор для поля ввода пароля в форме восстановления пароля
-@FindBy(xpath = "//*[@id=\"root\"]/div/main/div/form/fieldset/div/div/input")
-private WebElement passwordRestoreInput;
-
-// Локатор для книпоки "Восстановить пароль"
-@FindBy(xpath = "//*[@id=\"root\"]/div/main/div/div/p[2]/a")
-private WebElement recoverPasswordButton;
-
-// Локатор для кнопки "Войти" в: входе на главной странице, в форме регистрации, через кнопку 'Личный кабинет'
-@FindBy(xpath = "//button[text()='Войти']")
-private WebElement loginButton3;
-
-// Локатор для кнопки "Войти" в форме восстановления пароля
-//@FindBy(xpath = "//*[@id=\"root\"]/div/main/div/div/p/a")
-//private WebElement LoginButton2;
-
-// Локатор для кнопки "Конструктор"
-@FindBy(xpath = "//*[@id=\"root\"]/div/header/nav/ul/li[1]/a/p")
-private WebElement constructorButton;
-
-// Локатор для кнопки "Выйти"
-@FindBy(xpath = "//button[text()='Выход']")
-private WebElement logoutButton;
-
-// Локатор для логотипа Stellar Burgers
-@FindBy(xpath = "//*[@id=\"root\"]/div/header/nav/div")
-private WebElement logo;
-
-public StellarBurgersPage(WebDriver driver) {
-    this.driver = driver;
-    PageFactory.initElements(driver, this);
-}
-    // Метод для клика по кнопке "Войти в аккаунт"
+    @Step("Нажать на кнопку Вход")
     public void clickLoginButton() {
-        loginButton.click();
+        driver.findElement(loginButton).click();
     }
 
-    // Метод для клика по кнопке регистрации
-    public void clickRegisterButton() {
-        registerButton.click();
+    @Step("Проверка видимости кнопки Вход")
+    public boolean isLoginButtonVisible() {
+        return driver.findElement(loginButton).isDisplayed();
     }
 
-    // Метод для клика по кнопке "Личный Кабинет"
-    public void clickPersonalCabinetButton() {
-        personalCabinetButton.click();
+    @Step("Нажать на кнопку Зарегистрироваться")
+    public void clickRegistrationButton() {
+        driver.findElement(registerButton).click();
     }
 
-    // Метод для клика по кнопке "Войти" в форме регистрации
-    public void clickLoginButton2() {
-        loginButton2.click();
+    @Step("Нажать на кнопку восстановления пароля")
+    public void clickRecoverButton() {
+        driver.findElement(recoverButton).click();
     }
 
-    // Метод для ввода email
-    public void enterEmail(String email) {
-        emailInput.sendKeys(email);
+    @Step("Проверка видимости заголовка Вход")
+    public boolean isEnterHeaderVisible() {
+        return driver.findElement(enterHeader).isDisplayed();
     }
 
-    // Метод для ввода пароля
-    public void enterPassword(String password) {
-        passwordInput.sendKeys(password);
+
+    @Step("Ожидание загрузки страницы входа")
+    public void waitForLoadLoginPage() {
+        new WebDriverWait(driver, Duration.ofSeconds(10)).until(driver -> driver.findElement(loginText).isDisplayed());
     }
 
-    // Метод для ввода пароля в форме восстановления пароля
-    public void enterPasswordRestore(String password) {
-        passwordRestoreInput.sendKeys(password);
+    public void clickEmail() {
+        driver.findElement(emailField).click();
+    }
+    public void waitLoadingProfilePage() {
+        new WebDriverWait(driver, Duration.ofSeconds(10)).until(ExpectedConditions.visibilityOfElementLocated(profileButton));
     }
 
-    // Метод для клика по кнопке "Восстановить пароль"
-    public void clickRecoverPasswordButton() {
-        recoverPasswordButton.click();
-    }
 
-    //Метод для клика по кнопке "Войти" в других формах
-    public void clickLoginButton3() {
-      loginButton3.click();
-    }
-
-    // Метод для клика по кнопке "Конструктор"
+    @Step("Нажать на Конструктор")
     public void clickConstructorButton() {
-        constructorButton.click();
+        driver.findElement(constructorButton).click();
     }
 
-    // Метод для клика по кнопке "Выйти"
+    @Step("Нажать на кнопку Выход")
     public void clickLogoutButton() {
-        logoutButton.click();
+        waitButtonIsClickable();
+        driver.findElement(logoutButton).click();
     }
 
-    // Метод для получения логотипа
-    public WebElement getLogo() {
-        return logo;
+    @Step("Нажать на логотип Stellar Burgers")
+    public void clickLogoButton() {
+        driver.findElement(logoButton).click();
     }
+
+    @Step("Подождать пока кнопка Выти станет кликабельной")
+    public void waitButtonIsClickable() {
+        new WebDriverWait(driver,Duration.ofSeconds(30))
+                .until(ExpectedConditions.invisibilityOf(driver.findElement(modalOverlay)));}
 }
+

@@ -1,60 +1,68 @@
 package pageobjects;
 
+import io.qameta.allure.Step;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 public class ConstructorPage {
-    // Локаторы для активных разделов
-        @FindBy(xpath = "//*[@id='root']/div/main/section[1]/div[2]/h2[2]") // Соусы
-        private WebElement saucesSectionActive;
+    private WebDriver driver;
+    private final By makeBurgerText = By.xpath(".//main/section[1]/h1");
+    private final By loginButton = By.xpath(".//button[text() = 'Войти в аккаунт']");
+    private final By userPersonalAccountButton = By.xpath(".//p[text()='Личный Кабинет']");
+    private final By bunsButton = By.xpath(".//span[text() = 'Булки']");
+    private final By sauceButton = By.xpath(".//span[text() = 'Соусы']");
+    private final By fillingButton = By.xpath(".//span[text() = 'Начинки']");
+    private final By choiceSectionOfIngredients = By.xpath(".//div[contains(@class,'tab_tab_type_current')]");
+    private final By createOrderButton = By.xpath(".//button[text() = 'Оформить заказ']");
+    private final By ingredientsContainer = By.className("constructor-element");
 
-        @FindBy(xpath = "//*[@id='root']/div/main/section[1]/div[2]/h2[3]") // Начинки
-        private WebElement fillingsSectionActive;
+    public ConstructorPage(WebDriver driver) {
+        this.driver = driver;
+    }
 
-        @FindBy(xpath = "//*[@id='root']/div/main/section[1]/div[2]/h2[1]") // Булки
-        private WebElement bunsSectionActive;
+    public void waitLoadingMainPage() {
+        new WebDriverWait(driver, Duration.ofSeconds(10)).until(ExpectedConditions.visibilityOfElementLocated(makeBurgerText));
+    }
 
-        // Локаторы для клика по разделам
-        @FindBy(xpath = "//span[text()='Соусы']") // Раздел "Соусы"
-        private WebElement saucesSection;
+    @Step("Нажать на кнопку входа")
+    public void clickLoginButton() {
+        driver.findElement(loginButton).click();
+    }
 
-        @FindBy(xpath = "//span[text()='Начинки']") // Раздел "Начинки"
-        private WebElement fillingsSection;
+    @Step("Нажать на кнопку Личный Кабинет")
+    public void clickPersonalAccountButton() {
+        driver.findElement(userPersonalAccountButton).click();
+    }
 
-        @FindBy(xpath = "//span[text()='Булки']") // Раздел "Булки"
-        private WebElement bunsSection;
+    @Step("Нажать на кнопку Булки")
+    public void clickBunsButton() {
+        driver.findElement(bunsButton).click();
+    }
 
-        public ConstructorPage(WebDriver driver) {
-            PageFactory.initElements(driver, this);
-        }
+    @Step("Нажать на кнопку Соусы")
+    public void clickSauceButton() {
+        driver.findElement(sauceButton).click();
+    }
 
-        public void selectSaucesSection() {
-            saucesSection.click(); // Кликаем на элемент "Соусы"
-        }
+    @Step("Нажать на кнопку Начинки")
+    public void clickFillingButton() {
+        driver.findElement(fillingButton).click();
+    }
 
-        public void selectFillingsSection() {
-            fillingsSection.click(); // Кликаем на элемент "Начинки"
-        }
+    @Step("Проверка видимости выбора")
+    public boolean isChoiceSectionVisible() {
+        new WebDriverWait(driver, Duration.ofSeconds(10)).until(ExpectedConditions.visibilityOfElementLocated(choiceSectionOfIngredients));
+        return driver.findElement(choiceSectionOfIngredients).isDisplayed();
+    }
 
-        public void selectBunsSection() {
-            bunsSection.click(); // Кликаем на элемент "Булки"
-        }
-
-        // Методы для получения текста заголовков
-        public String getSaucesHeaderText() {
-            return saucesSectionActive.getText(); // Получаем текст заголовка "Соусы"
-        }
-
-        public String getFillingsHeaderText() {
-            return fillingsSectionActive.getText(); // Получаем текст заголовка "Начинки"
-        }
-
-        public String getBunsHeaderText() {
-            return bunsSectionActive.getText(); // Получаем текст заголовка "Булки"
-        }
-        }
-
-
+    @Step("Проверка видимости кнопки Оформить заказ")
+    public boolean isCreateOrderButtonVisible() {
+        new WebDriverWait(driver, Duration.ofSeconds(10)).until(ExpectedConditions.visibilityOfElementLocated(createOrderButton));
+        return driver.findElement(createOrderButton).isDisplayed();
+    }
+}
 

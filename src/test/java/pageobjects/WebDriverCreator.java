@@ -1,11 +1,15 @@
 package pageobjects;
+
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
-public class WebDriverManager {
-    public static WebDriver createWebDriver() {
-        String browser = System.getProperty("browser");
+import static java.sql.DriverManager.getDriver;
+
+public class WebDriverCreator {
+
+
+    public static WebDriver createWebDriver(String browser) {
         if (browser == null) {
             return createChromeDriver();
         }
@@ -33,13 +37,5 @@ public class WebDriverManager {
         return new ChromeDriver(options);
     }
 }
- /*
-    Переменные окружения, прописанные в системе:
-    WEBDRIVERS - путь к папке с драйверами для браузеров
-    YANDEX_BROWSER_DRIVER_FILENAME - имя файла драйвера Яндекс браузера (Хромдрайвера нужной версии)
-    YANDEX_BROWSER_PATH - путь к исполняемому файлу Яндекс браузера в системе
-     */
-
-
 
 

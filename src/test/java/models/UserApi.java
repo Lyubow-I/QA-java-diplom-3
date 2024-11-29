@@ -1,12 +1,14 @@
-package pageobjects;
+package models;
 
 import io.qameta.allure.Step;
 import io.restassured.response.ValidatableResponse;
 import tests.Specification;
 
 import static io.restassured.RestAssured.given;
-import static pageobjects.Api.USER_DELETE;
-import static pageobjects.Api.USER_REGISTER;
+import static models.Api.USER_DELETE;
+import static models.Api.USER_REGISTER;
+import static org.apache.http.HttpStatus.SC_ACCEPTED;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 public class UserApi extends Specification {
 
@@ -26,14 +28,19 @@ public class UserApi extends Specification {
     }
 
     @Step("Удаление пользователя")
-    public ValidatableResponse deleteUser(String accessToken) {
-        return given()
-                .spec(getBaseSpec())
-                .body(accessToken)
-                .when()
+    public static void deleteUser(String accessToken) {
+        given()
+                .header("Authorization", accessToken)
                 .delete(USER_DELETE)
                 .then()
-                .log().all();
+                .statusCode(SC_ACCEPTED)
+                .and()
+                .body("success", equalTo(true))
+                .body("message", equalTo("User successfully removed"));
+
+        }
     }
-}
+
+
+
 

@@ -1,4 +1,5 @@
-package pageobjects;
+package models;
+
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -37,5 +38,4 @@ public class WebDriverCreator {
         return new ChromeDriver(options);
     }
 }
-
 

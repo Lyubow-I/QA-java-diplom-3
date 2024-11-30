@@ -11,10 +11,7 @@ import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import pageobjects.*;
 
-import static models.Api.BASE_URL;
 import static models.Api.MAIN_PAGE;
-import static models.User.getUser;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertTrue;
 
 @DisplayName("Авторизация пользователя")
@@ -43,7 +40,14 @@ import static org.junit.Assert.assertTrue;
         stellarBurgersPage = new StellarBurgersPage(driver);
         registrationPage = new RegistrationPage(driver);
     }
-
+    @Step("Удалить пользователя после теста")
+    @After
+    public void tearDown() {
+        userApi.deleteUser(token);
+        if (driver != null) {
+            driver.quit();
+        }
+    }
     @DisplayName("Вход по кнопке Войти в аккаунт на главной")
     @Test
     public void loginFromMainPageTest() {
@@ -96,21 +100,8 @@ import static org.junit.Assert.assertTrue;
         System.out.println("Пользователь с email: " + user.getEmail() + " авторизован");
     }
 
-    @After
-    public void tearDown() {
-        RestAssured.baseURI = BASE_URL;
-        User user = getUser ();
-        userApi = new UserApi();
-        driver.quit();
-        Response response = userApi.createUser(user);
-        response.then().assertThat().statusCode(200)
-                .and()
-                .body("success", equalTo(true));
 
-        token = response.as(UserToken.class).getAccessToken();
-        userApi.deleteUser(token);
 
-    }
         }
 
 

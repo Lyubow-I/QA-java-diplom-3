@@ -1,17 +1,20 @@
 package tests;
+import io.opentelemetry.sdk.metrics.internal.view.AttributesProcessor;
 import io.qameta.allure.Description;
 import io.qameta.allure.Step;
-import models.User;
-import models.UserApi;
-import models.WebDriverCreator;
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import models.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import pageobjects.*;
 import org.junit.After;
 
+import static models.Api.BASE_URL;
 import static models.Api.MAIN_PAGE;
-import static models.UserApi.deleteUser;
+import static models.User.getUser;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -24,6 +27,7 @@ public class AccountTest {
     private User user;
     private UserApi userApi;
     private String accessToken;
+    private String token;
     private static final String LOGIN_URL = "https://stellarburgers.nomoreparties.site/account/profile";
 
     @Step("Подготовка данных и браузера")
@@ -31,7 +35,7 @@ public class AccountTest {
     public void setUp() {
         user = User.getUser();
         userApi = new UserApi();
-        accessToken = userApi.createUser(user);
+        accessToken = String.valueOf(userApi.createUser(user));
         String browser = System.getProperty("browser", "chrome");
         driver = WebDriverCreator.createWebDriver(browser);
         driver.get(MAIN_PAGE);
@@ -90,8 +94,17 @@ public class AccountTest {
 
     @After
     public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-        }
+        RestAssured.baseURI = BASE_URL;
+        User user = getUser ();
+        userApi = new UserApi();
+        driver.quit();
+        Response response = userApi.createUser(user);
+        response.then().assertThat().statusCode(200)
+                .and()
+                .body("success", equalTo(true));
+
+        token = response.as(UserToken.class).getAccessToken();
+        userApi.deleteUser(token);
     }
-}
+    }
+

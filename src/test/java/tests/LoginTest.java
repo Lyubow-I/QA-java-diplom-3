@@ -1,8 +1,8 @@
 package tests;
 
-import models.User;
-import models.UserApi;
-import models.WebDriverCreator;
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import models.*;
 import org.junit.After;
 import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
@@ -11,7 +11,10 @@ import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import pageobjects.*;
 
+import static models.Api.BASE_URL;
 import static models.Api.MAIN_PAGE;
+import static models.User.getUser;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertTrue;
 
 @DisplayName("Авторизация пользователя")
@@ -23,13 +26,13 @@ import static org.junit.Assert.assertTrue;
     private User user;
     private UserApi userApi;
     private String accessToken;
-
+    private String token;
     @Step("Подготовка данных и браузера")
     @Before
     public void setUp() {
         user = User.getUser();
         userApi = new UserApi();
-        accessToken = userApi.createUser(user);
+        accessToken = String.valueOf(userApi.createUser(user));
 
         String browser = System.getProperty("browser", "chrome");
         driver = WebDriverCreator.createWebDriver(browser);
@@ -95,9 +98,20 @@ import static org.junit.Assert.assertTrue;
 
     @After
     public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-        }
+        RestAssured.baseURI = BASE_URL;
+        User user = getUser ();
+        userApi = new UserApi();
+        driver.quit();
+        Response response = userApi.createUser(user);
+        response.then().assertThat().statusCode(200)
+                .and()
+                .body("success", equalTo(true));
+
+        token = response.as(UserToken.class).getAccessToken();
+        userApi.deleteUser(token);
+
     }
-}
+        }
+
+
 

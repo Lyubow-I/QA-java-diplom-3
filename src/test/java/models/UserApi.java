@@ -1,46 +1,35 @@
 package models;
 
 import io.qameta.allure.Step;
-import io.restassured.response.ValidatableResponse;
+import io.restassured.response.Response;
 import tests.Specification;
 
 import static io.restassured.RestAssured.given;
 import static models.Api.USER_DELETE;
 import static models.Api.USER_REGISTER;
-import static org.apache.http.HttpStatus.SC_ACCEPTED;
-import static org.hamcrest.CoreMatchers.equalTo;
 
 public class UserApi extends Specification {
-
-
     @Step("Создание пользователя")
-    public String createUser(User user) {
-        ValidatableResponse response = given()
-                .spec(getBaseSpec())
-                .body(user)
-                .when()
-                .post(USER_REGISTER)
-                .then()
-                .log().all();
-        String accessToken = response.extract().path("accessToken");
-        return accessToken;
+        public Response createUser (User user) {
+            return given()
+                    .log().all()
+                    .header("Content-type", "application/json")
+                    .body(user)
+                    .when()
+                    .post(USER_REGISTER);
 
     }
+
 
     @Step("Удаление пользователя")
-    public static void deleteUser(String accessToken) {
-        given()
-                .header("Authorization", accessToken)
-                .delete(USER_DELETE)
-                .then()
-                .statusCode(SC_ACCEPTED)
+    public Response deleteUser(String token) {
+        return given()
+                .log().all()
+                .headers(
+                        "Content-type", "application/json",
+                        "Authorization", token)
                 .and()
-                .body("success", equalTo(true))
-                .body("message", equalTo("User successfully removed"));
-
-        }
+                .delete(USER_DELETE);
     }
-
-
-
+}
 

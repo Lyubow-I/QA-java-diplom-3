@@ -27,9 +27,9 @@ import org.apache.commons.lang3.RandomStringUtils;
             return password;
         }
         public static User getUser() {
-            String name = RandomStringUtils.randomAlphabetic(8);
-            String email = RandomStringUtils.randomAlphabetic(8) + "@new.ru";
-            String password = RandomStringUtils.randomAlphabetic(8);
+            String name = RandomStringUtils.randomAlphabetic(6);
+            String email = RandomStringUtils.randomAlphabetic(6) + "@ya.ru";
+            String password = RandomStringUtils.randomAlphabetic(6);
             return new User(name, email, password);
         }
 

@@ -25,10 +25,9 @@ public class UserApi extends Specification {
 
 
     @Step("Удалить пользователя")
-    public void deleteUser(String token) {
-        String cleanToken = token.replace("Bearer ", "");
+    public void deleteUser(String accessToken) {
         Response deleteResponse = given()
-                .header("Authorization", "Bearer " + cleanToken)
+                .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .delete(USER_DELETE);
         assertThat(String.valueOf(deleteResponse.getStatusCode()), is(202));

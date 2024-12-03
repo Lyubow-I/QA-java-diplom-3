@@ -2,6 +2,7 @@ package pageobjects;
 
 import io.qameta.allure.Step;
 import org.openqa.selenium.*;
+import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 
@@ -13,8 +14,11 @@ public class RegistrationPage {
     private final By passwordField = By.xpath("//div/form/fieldset[3]//input[@name='Пароль']");
     private final By registrationButton = By.xpath(".//*[text()='Зарегистрироваться']");
     private final By incorrectPasswordText = By.xpath(".//p[text() = 'Некорректный пароль']");
-    private final By loginButton = By.xpath("//main/div/div/p/*[@href='/login']");
+    private final By loginButton = By.cssSelector("button.button_button__33qZ0.button_button_type_primary__1O7Bx.button_button_size_large__G21Vg");
     private final By recoverPasswordText = By.xpath(".//main/div/h2");
+
+    @FindBy(xpath = "//p[contains(text(), 'Некорректный пароль')]")
+    private WebElement passwordError;
 
     public RegistrationPage(WebDriver driver) {
         this.driver = driver;
@@ -33,7 +37,7 @@ public class RegistrationPage {
         driver.findElement(nameField).sendKeys(name);
     }
 
-    public void clickEmail() {
+    public void clickEmail(String email) {
         driver.findElement(emailField).click();
     }
 
@@ -67,6 +71,13 @@ public class RegistrationPage {
     public boolean isIncorrectPasswordTextVisible() {
         return driver.findElement(incorrectPasswordText).isDisplayed();
     }
+    public boolean isPasswordErrorDisplayed() {
 
+        return passwordError.isDisplayed();
+    }
 
+    public String getPasswordErrorText() {
+
+        return passwordError.getText();
+    }
 }

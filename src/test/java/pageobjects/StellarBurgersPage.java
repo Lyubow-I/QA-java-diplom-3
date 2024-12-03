@@ -20,7 +20,7 @@ public class StellarBurgersPage {
     private final By enterHeader = By.xpath("//h2[contains(text(),'Вход')]");
     private final By constructorButton = By.xpath(".//p[text() = 'Конструктор']");
     private final By profileButton = By.xpath(".//a[text() = 'Профиль']");
-    private final By logoutButton = By.xpath(".//nav[starts-with(@class, 'Account_nav')]/ul/li/button");
+    private final By logoutButton = By.xpath("//button[contains(@class, 'Account_button__14Yp3') and text()='Выход']");
     private final By logoButton = By.xpath(".//header/nav/div");
     private final By modalOverlay = By.xpath(".//div[starts-with(@class, 'App_App')]/div/div[starts-with(@class, 'Modal_modal_overlay')]");
 

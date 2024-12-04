@@ -2,8 +2,6 @@ package tests;
 
 import io.qameta.allure.Description;
 import io.qameta.allure.Step;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import models.*;
 import org.junit.Before;
@@ -14,14 +12,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import pageobjects.*;
 import org.junit.After;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-
-import static java.rmi.activation.Activatable.register;
 import static models.Api.*;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.junit.Assert.*;
 public class AccountTest {
     private WebDriver driver;

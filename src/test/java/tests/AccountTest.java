@@ -17,6 +17,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.rmi.activation.Activatable.register;
 import static models.Api.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -46,23 +47,8 @@ public class AccountTest {
         registrationPage = new RegistrationPage(driver);
     }
 
-    @Step("Регистрация через API")
-    public Response register(UserRandom user) {
-        Map<String, String> userData = new HashMap<>();
-        userData.put("email", user.getEmail());
-        userData.put("password", user.getPassword());
-        userData.put("name", user.getName());
 
-        Response response = RestAssured.given()
-                .baseUri(BASE_URL)
-                .contentType("application/json")
-                .body(userData)
-                .when()
-                .post("/api/auth/register");
-        System.out.println("Response: " + response.getBody().asString());
-        return response;
-    }
-
+@Step("Вход под логиным")
     private void login(UserRandom user) {
         constructorPage.clickLoginButton();
         stellarBurgersPage.setEmail(user.getEmail());
@@ -93,7 +79,7 @@ public class AccountTest {
     @Test
     public void goToAccountFromMainPageTest() {
         UserRandom user = UserRandom.getUser();
-        Response registerResponse = register(user);
+        Response registerResponse = userApi.register(user);
         assertEquals(200, registerResponse.getStatusCode());
 
         waitUntilUrlIs(MAIN_PAGE);
@@ -108,7 +94,7 @@ public class AccountTest {
     @Test
     public void constructorClickTest() {
         UserRandom user = UserRandom.getUser();
-        Response registerResponse = register(user);
+        Response registerResponse = userApi.register(user);
         assertEquals(200, registerResponse.getStatusCode());
 
         waitUntilUrlIs(MAIN_PAGE);
@@ -124,7 +110,7 @@ public class AccountTest {
     @Test
     public void logoClickTest() {
         UserRandom user = UserRandom.getUser();
-        Response registerResponse = register(user);
+        Response registerResponse = userApi.register(user);
         assertEquals(200, registerResponse.getStatusCode());
 
         waitUntilUrlIs(MAIN_PAGE);

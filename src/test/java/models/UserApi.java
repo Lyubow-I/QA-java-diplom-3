@@ -63,6 +63,22 @@ public class UserApi extends Specification {
 
         return loginResponse.as(UserToken.class).getAccessToken();
     }
+    @Step("Регистрация через API")
+    public Response register(UserRandom user) {
+        Map<String, String> userData = new HashMap<>();
+        userData.put("email", user.getEmail());
+        userData.put("password", user.getPassword());
+        userData.put("name", user.getName());
+
+        Response response = RestAssured.given()
+                .baseUri(BASE_URL)
+                .contentType("application/json")
+                .body(userData)
+                .when()
+                .post("/api/auth/register");
+        System.out.println("Response: " + response.getBody().asString());
+        return response;
+    }
 }
 
 

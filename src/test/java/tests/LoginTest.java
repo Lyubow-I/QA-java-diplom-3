@@ -14,8 +14,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import pageobjects.*;
 import org.junit.After;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
+
 import static models.Api.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -47,24 +46,8 @@ import static org.junit.Assert.*;
         userClient = new UserClient();
 
     }
-    @Step("Регистрация через API")
-    public Response register(UserRandom user) {
-        Map<String, String> userData = new HashMap<>();
-        userData.put("email", user.getEmail());
-        userData.put("password", user.getPassword());
-        userData.put("name", user.getName());
-
-        Response response = RestAssured.given()
-                .baseUri(BASE_URL)
-                .contentType("application/json")
-                .body(userData)
-                .when()
-                .post("/api/auth/register");
-        System.out.println("Response: " + response.getBody().asString());
-        return response;
-    }
+    @Step("Вход под логиным")
     private void login(UserRandom user) {
-
         stellarBurgersPage.setEmail(user.getEmail());
         stellarBurgersPage.setPassword(user.getPassword());
         registrationPage.clickLoginButton();
@@ -87,7 +70,7 @@ import static org.junit.Assert.*;
     @Test
     public void loginFromMainPageTest() {
         UserRandom user = UserRandom.getUser();
-        Response registerResponse = register(user);
+        Response registerResponse = userApi.register(user);
         assertEquals(200, registerResponse.getStatusCode());
         constructorPage.clickLoginButton();
         login(user);
@@ -99,7 +82,7 @@ import static org.junit.Assert.*;
     @Test
     public void loginFromPersonalAccountButton() {
         UserRandom user = UserRandom.getUser();
-        Response registerResponse = register(user);
+        Response registerResponse = userApi.register(user);
         assertEquals(200, registerResponse.getStatusCode());
         constructorPage.clickPersonalAccountButton();
         login(user);
@@ -111,7 +94,7 @@ import static org.junit.Assert.*;
     @Test
     public void loginFromRegistrationPageTest() {
         UserRandom user = UserRandom.getUser();
-        Response registerResponse = register(user);
+        Response registerResponse = userApi.register(user);
         assertEquals(200, registerResponse.getStatusCode());
         constructorPage.clickLoginButton();
         stellarBurgersPage.clickRegistrationButton();
@@ -125,7 +108,7 @@ import static org.junit.Assert.*;
     @Test
     public void loginFromPasswordResetPageTest() {
         UserRandom user = UserRandom.getUser();
-        Response registerResponse = register(user);
+        Response registerResponse = userApi.register(user);
         assertEquals(200, registerResponse.getStatusCode());
         constructorPage.clickLoginButton();
         stellarBurgersPage.clickRecoverButton();

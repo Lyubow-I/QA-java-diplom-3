@@ -34,16 +34,6 @@ public class UserApi extends Specification {
     public UserApi() {
         this.userClient = new UserClient();
     }
-    @Step("Создание пользователя")
-    public Response createUser(User user) {
-        return given()
-                .log().all()
-                .header("Content-type", "application/json")
-                .body(user)
-                .when()
-                .post(USER_REGISTER);
-
-    }
 
     @Step("Удалить пользователя по токену")
     public void deleteUser(String accessToken) {

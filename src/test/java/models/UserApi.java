@@ -6,6 +6,9 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import tests.Specification;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static io.restassured.RestAssured.given;
 import static models.Api.*;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -16,6 +19,10 @@ import static sun.nio.cs.Surrogate.is;
 
 public class UserApi extends Specification {
     private UserClient userClient;
+    private String accessToken;
+    public UserApi() {
+        this.userClient = new UserClient();
+    }
     @Step("Создание пользователя")
     public Response createUser(User user) {
         return given()
@@ -28,10 +35,9 @@ public class UserApi extends Specification {
     }
 
     @Step("Удалить пользователя по токену")
-    public void deleteUser(String token) {
-        String cleanToken = token.replace("Bearer ", "");
+    public void deleteUser(String accessToken) {
         Response deleteResponse = given()
-                .header("Authorization", "Bearer " + cleanToken)
+                .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .delete(USER_DELETE);
         System.out.println("Delete Response Code: " + deleteResponse.getStatusCode());
@@ -42,6 +48,8 @@ public class UserApi extends Specification {
         assertThat(deleteResponse.jsonPath().getString("message"), equalTo(expectedMessage));
         System.out.println("Пользователь успешно удален");
     }
+
+
     @Step("Изъятие токена")
     public String getAccessToken(String email, String password) {
         Response loginResponse = userClient.login(email, password);

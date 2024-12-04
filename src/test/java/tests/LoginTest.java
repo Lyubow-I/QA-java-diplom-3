@@ -2,6 +2,7 @@ package tests;
 
 import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
+import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import models.*;
@@ -13,6 +14,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import pageobjects.*;
 import org.junit.After;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import static models.Api.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -22,9 +25,6 @@ import static org.junit.Assert.*;
 
 @DisplayName("Авторизация пользователя")
     public class LoginTest {
-    private String name = "Zena";
-    private String email = "Zena@ya.ru";
-    private String password = "1q2w3e";
     private WebDriver driver;
     private StellarBurgersPage stellarBurgersPage;
     private RegistrationPage registrationPage;
@@ -32,7 +32,7 @@ import static org.junit.Assert.*;
     private UserApi userApi;
     private UserClient userClient;
     private String accessToken;
-
+    private User user;
     @Step("Подготовка данных и браузера")
     @Before
     public void setUp() {
@@ -45,95 +45,92 @@ import static org.junit.Assert.*;
         stellarBurgersPage = new StellarBurgersPage(driver);
         registrationPage = new RegistrationPage(driver);
         userClient = new UserClient();
+
     }
+    @Step("Регистрация через API")
+    public Response register(UserRandom user) {
+        Map<String, String> userData = new HashMap<>();
+        userData.put("email", user.getEmail());
+        userData.put("password", user.getPassword());
+        userData.put("name", user.getName());
 
-    @Step(" регистрации пользователя")
-    public void registration() {
-        constructorPage.waitLoadingMainPage();
-        constructorPage.clickLoginButton();
-        stellarBurgersPage.clickRegistrationButton();
-        assertEquals("URL после регистрации должен быть страницей регистрации",
-                SITE_REGISTER,
-                driver.getCurrentUrl());
-        registrationPage.setName(name);
-        registrationPage.setEmail(email);
-        registrationPage.setPassword(password);
-        registrationPage.clickRegistrationButton();
+        Response response = RestAssured.given()
+                .baseUri(BASE_URL)
+                .contentType("application/json")
+                .body(userData)
+                .when()
+                .post("/api/auth/register");
+        System.out.println("Response: " + response.getBody().asString());
+        return response;
+    }
+    private void login(UserRandom user) {
 
+        stellarBurgersPage.setEmail(user.getEmail());
+        stellarBurgersPage.setPassword(user.getPassword());
+        registrationPage.clickLoginButton();
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        wait.until(ExpectedConditions.urlToBe(USER_LOGIN));
-        assertEquals("URL после регистрации должен быть страницей логина",
-                USER_LOGIN,
-                driver.getCurrentUrl());
+        wait.until(ExpectedConditions.urlToBe(MAIN_PAGE));
 
-    }
-
-    @DisplayName("Вход по кнопке Войти в аккаунт на главной")
-    @Test
-    public void loginFromMainPageTest() {
-        constructorPage.waitLoadingMainPage();
-        constructorPage.clickLoginButton();
-        stellarBurgersPage.setEmail(email);
-        stellarBurgersPage.setPassword(password);
-        stellarBurgersPage.clickLoginButton();
-        boolean isGetOrderButtonVisible = constructorPage.isCreateOrderButtonVisible();
-        assertTrue("Вместо кнопки Войти появляется кнопка Оформить заказ на главной странице", isGetOrderButtonVisible);
-        System.out.println("Пользователь с email: " + email + " авторизован");
-        userApi.deleteUser(accessToken);
-    }
-
-    @DisplayName("Вход через кнопку Личный кабинет")
-    @Test
-    public void loginFromPersonalAccountButton() {
-        constructorPage.waitLoadingMainPage();
-        constructorPage.clickPersonalAccountButton();
-        stellarBurgersPage.setEmail(email);
-        stellarBurgersPage.setPassword(password);
-        stellarBurgersPage.clickLoginButton();
-        boolean isGetOrderButtonVisible = constructorPage.isCreateOrderButtonVisible();
-        assertTrue("Вместо кнопки Войти появляется кнопка Оформить заказ на главной странице", isGetOrderButtonVisible);
-        System.out.println("Пользователь с email: " + email + " авторизован");
-    }
-
-    @DisplayName("Вход через форму регистрации")
-    @Test
-    public void loginFromRegistrationPageTest() {
-        constructorPage.waitLoadingMainPage();
-        constructorPage.clickLoginButton();
-        stellarBurgersPage.clickRegistrationButton();
-        registrationPage.clickLoginButton();
-        stellarBurgersPage.setEmail(email);
-        stellarBurgersPage.setPassword(password);
-        stellarBurgersPage.clickLoginButton();
-        boolean isGetOrderButtonVisible = constructorPage.isCreateOrderButtonVisible();
-        assertTrue( isGetOrderButtonVisible);
-        System.out.println("Пользователь с email: " + email + " авторизован");
-    }
-
-    @DisplayName("Вход через кнопку в форме восстановления пароля")
-    @Test
-    public void loginFromPasswordResetPageTest() {
-        constructorPage.waitLoadingMainPage();
-        constructorPage.clickLoginButton();
-        stellarBurgersPage.clickRecoverButton();
-        registrationPage.clickLoginButton();
-        stellarBurgersPage.setEmail(email);
-        stellarBurgersPage.setPassword(password);
-        stellarBurgersPage.clickLoginButton();
-        boolean isGetOrderButtonVisible = constructorPage.isCreateOrderButtonVisible();
-        assertTrue( isGetOrderButtonVisible);
-        Response loginResponse = userClient.login(email, password);
+        Response loginResponse = userClient.login(user.getEmail(), user.getPassword());
         loginResponse.then().assertThat()
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("success", equalTo(true))
                 .body("accessToken", notNullValue())
                 .body("refreshToken", notNullValue())
-                .body("user.email", equalToIgnoringCase(email));
+                .body("user.email", equalToIgnoringCase(user.getEmail()));
 
         accessToken = loginResponse.as(UserToken.class).getAccessToken();
 
-        System.out.println("Пользователь с email: " + email + " авторизован");
+    }
+    @DisplayName("Вход по кнопке Войти в аккаунт на главной")
+    @Test
+    public void loginFromMainPageTest() {
+        UserRandom user = UserRandom.getUser();
+        Response registerResponse = register(user);
+        assertEquals(200, registerResponse.getStatusCode());
+        constructorPage.clickLoginButton();
+        login(user);
+        assertNotNull("AccessToken не должен быть null", accessToken);
+        assertNotNull("userApi не должен быть null", userApi);
+    }
+
+    @DisplayName("Вход через кнопку Личный кабинет")
+    @Test
+    public void loginFromPersonalAccountButton() {
+        UserRandom user = UserRandom.getUser();
+        Response registerResponse = register(user);
+        assertEquals(200, registerResponse.getStatusCode());
+        constructorPage.clickPersonalAccountButton();
+        login(user);
+        assertNotNull("AccessToken не должен быть null", accessToken);
+        assertNotNull("userApi не должен быть null", userApi);
+    }
+
+    @DisplayName("Вход через форму регистрации")
+    @Test
+    public void loginFromRegistrationPageTest() {
+        UserRandom user = UserRandom.getUser();
+        Response registerResponse = register(user);
+        assertEquals(200, registerResponse.getStatusCode());
+        constructorPage.clickLoginButton();
+        stellarBurgersPage.clickRegistrationButton();
+        registrationPage.clickLoginButton();
+        login(user);
+        assertNotNull("AccessToken не должен быть null", accessToken);
+        assertNotNull("userApi не должен быть null", userApi);
+    }
+
+    @DisplayName("Вход через кнопку в форме восстановления пароля")
+    @Test
+    public void loginFromPasswordResetPageTest() {
+        UserRandom user = UserRandom.getUser();
+        Response registerResponse = register(user);
+        assertEquals(200, registerResponse.getStatusCode());
+        constructorPage.clickLoginButton();
+        stellarBurgersPage.clickRecoverButton();
+        registrationPage.clickLoginButton();
+        login(user);
         assertNotNull("AccessToken не должен быть null", accessToken);
         assertNotNull("userApi не должен быть null", userApi);
 
@@ -144,7 +141,7 @@ import static org.junit.Assert.*;
         if (driver != null) {
             driver.quit();
         }
-        // Удаление пользователя после всех тестов
+
         if (accessToken != null) {
             userApi.deleteUser (accessToken);
         }

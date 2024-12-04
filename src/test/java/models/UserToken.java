@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
             this.success = success;
         }
 
+
         public String getAccessToken() {
             return accessToken;
         }

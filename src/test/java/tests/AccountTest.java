@@ -2,6 +2,7 @@ package tests;
 
 import io.qameta.allure.Description;
 import io.qameta.allure.Step;
+import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import models.*;
@@ -13,6 +14,9 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import pageobjects.*;
 import org.junit.After;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+
 import static models.Api.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -26,11 +30,13 @@ public class AccountTest {
     private UserApi userApi;
     private UserClient userClient;
     private String accessToken;
+    private User user;
 
     @Step("Подготовка данных и браузера")
     @Before
     public void setUp() {
         userApi = new UserApi();
+        userClient = new UserClient();
         String browser = System.getProperty("browser", "chrome");
         driver = WebDriverCreator.createWebDriver(browser);
         driver.manage().window().maximize();
@@ -38,95 +44,97 @@ public class AccountTest {
         constructorPage = new ConstructorPage(driver);
         stellarBurgersPage = new StellarBurgersPage(driver);
         registrationPage = new RegistrationPage(driver);
-        userClient = new UserClient();
     }
 
-    @Step("Регистрация")
-    public void registracion() {
-        constructorPage.waitLoadingMainPage();
+    @Step("Регистрация через API")
+    public Response register(UserRandom user) {
+        Map<String, String> userData = new HashMap<>();
+        userData.put("email", user.getEmail());
+        userData.put("password", user.getPassword());
+        userData.put("name", user.getName());
+
+        Response response = RestAssured.given()
+                .baseUri(BASE_URL)
+                .contentType("application/json")
+                .body(userData)
+                .when()
+                .post("/api/auth/register");
+        System.out.println("Response: " + response.getBody().asString());
+        return response;
+    }
+
+    private void login(UserRandom user) {
         constructorPage.clickLoginButton();
-        stellarBurgersPage.clickRegistrationButton();
-        assertEquals("URL после регистрации должен быть страницей регистрации",
-                SITE_REGISTER,
-                driver.getCurrentUrl());
-        UserRandom userRandom = UserRandom.getUser ();
-        String userName = userRandom.getName();
-        String userEmail = userRandom.getEmail();
-        String userPassword = userRandom.getPassword();
-        registrationPage.setName(userName);
-        registrationPage.setEmail(userEmail);
-        registrationPage.setPassword(userPassword);
-        registrationPage.clickRegistrationButton();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        wait.until(ExpectedConditions.urlToBe(USER_LOGIN));
-        assertEquals("URL после регистрации должен быть страницей логина",
-                USER_LOGIN,
-                driver.getCurrentUrl());
-
-    }
-    @Step("Вход под созданным пользователем")
-    public void loginAsRegisteredUser() {
-        UserRandom userRandom = UserRandom.getUser ();
-        String userEmail = userRandom.getEmail();
-        String userPassword = userRandom.getPassword();
-        stellarBurgersPage.setEmail(userEmail);
-        stellarBurgersPage.setPassword(userPassword);
+        stellarBurgersPage.setEmail(user.getEmail());
+        stellarBurgersPage.setPassword(user.getPassword());
         registrationPage.clickLoginButton();
+
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
         wait.until(ExpectedConditions.urlToBe(MAIN_PAGE));
-        assertEquals("URL после входа должен быть главной страницей",
-                MAIN_PAGE,
-                driver.getCurrentUrl());
-        Response loginResponse = userClient.login(userEmail, userPassword);
+
+        Response loginResponse = userClient.login(user.getEmail(), user.getPassword());
         loginResponse.then().assertThat()
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("success", equalTo(true))
                 .body("accessToken", notNullValue())
                 .body("refreshToken", notNullValue())
-                .body("user.email", equalToIgnoringCase(userEmail));
+                .body("user.email", equalToIgnoringCase(user.getEmail()));
 
-        String accessToken = loginResponse.as(UserToken.class).getAccessToken();
+        accessToken = loginResponse.as(UserToken.class).getAccessToken();
+    }
 
+    private void waitUntilUrlIs(String url) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        wait.until(ExpectedConditions.urlToBe(url));
     }
 
     @Description("Тестирование перехода в личный кабинет по клику на Личный кабинет")
     @Test
     public void goToAccountFromMainPageTest() {
-        registracion();
-        loginAsRegisteredUser();
+        UserRandom user = UserRandom.getUser();
+        Response registerResponse = register(user);
+        assertEquals(200, registerResponse.getStatusCode());
+
+        waitUntilUrlIs(MAIN_PAGE);
+        login(user);
         constructorPage.clickPersonalAccountButton();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        wait.until(ExpectedConditions.urlToBe(USER_PROFILE));
-        assertEquals("URL после входа в аккаунт и клика по кнопке «Личный кабинет» должен быть переход на страницу профиля", USER_PROFILE, driver.getCurrentUrl());
 
+        waitUntilUrlIs(USER_PROFILE);
+        assertEquals("URL после входа в аккаунт и клика по кнопке «Личный кабинет» должен быть переход на страницу профиля",
+                USER_PROFILE, driver.getCurrentUrl());
     }
-
     @Description("Переход из личного кабинета  по клику на Конструктор")
     @Test
     public void constructorClickTest() {
-        registracion();
-        loginAsRegisteredUser();
+        UserRandom user = UserRandom.getUser();
+        Response registerResponse = register(user);
+        assertEquals(200, registerResponse.getStatusCode());
+
+        waitUntilUrlIs(MAIN_PAGE);
+        login(user);
         constructorPage.clickPersonalAccountButton();
         stellarBurgersPage.clickConstructorButton();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        wait.until(ExpectedConditions.urlToBe(MAIN_PAGE));
+
+        waitUntilUrlIs(MAIN_PAGE);
         assertEquals("URL после клика по кнопке Конструктор из личного кабинета должен быть главной страницей", MAIN_PAGE, driver.getCurrentUrl());
     }
 
     @Description("Переход из личного кабинета на логотип Stellar Burgers")
     @Test
     public void logoClickTest() {
-        registracion();
-        loginAsRegisteredUser();
+        UserRandom user = UserRandom.getUser();
+        Response registerResponse = register(user);
+        assertEquals(200, registerResponse.getStatusCode());
+
+        waitUntilUrlIs(MAIN_PAGE);
+        login(user);
         constructorPage.clickPersonalAccountButton();
         stellarBurgersPage.clickLogoButton();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        wait.until(ExpectedConditions.urlToBe(MAIN_PAGE));
+
+        waitUntilUrlIs(MAIN_PAGE);
         assertEquals("URL после клика по логотипу Stellar Burgers должен быть главной страницей", MAIN_PAGE, driver.getCurrentUrl());
     }
-
-
 
     @Step("Закрыть браузер и удалить пользователя")
     @After
@@ -135,10 +143,16 @@ public class AccountTest {
             driver.quit();
         }
 
-       if (accessToken != null) {
-           userApi.deleteUser (accessToken);
-       }
+        if (accessToken != null) {
+            userApi.deleteUser(accessToken);
+
+        }
     }
+
 }
+
+
+
+
 
 

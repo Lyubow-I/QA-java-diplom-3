@@ -4,8 +4,15 @@ import io.qameta.allure.Step;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import pageobjects.ConstructorPage;
+import pageobjects.RegistrationPage;
+import pageobjects.StellarBurgersPage;
 import tests.Specification;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +25,10 @@ import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static sun.nio.cs.Surrogate.is;
 
 public class UserApi extends Specification {
+    private WebDriver driver;
+    private StellarBurgersPage stellarBurgersPage;
+    private RegistrationPage registrationPage;
+    private ConstructorPage constructorPage;
     private UserClient userClient;
     private String accessToken;
     public UserApi() {
@@ -49,7 +60,26 @@ public class UserApi extends Specification {
         System.out.println("Пользователь успешно удален");
     }
 
+    @Step("Вход под логиным")
+    public void login(UserRandom user) {
+        stellarBurgersPage.setEmail(user.getEmail());
+        stellarBurgersPage.setPassword(user.getPassword());
+        registrationPage.clickLoginButton();
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        wait.until(ExpectedConditions.urlToBe(MAIN_PAGE));
 
+        Response loginResponse = userClient.login(user.getEmail(), user.getPassword());
+        loginResponse.then().assertThat()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("success", equalTo(true))
+                .body("accessToken", notNullValue())
+                .body("refreshToken", notNullValue())
+                .body("user.email", equalToIgnoringCase(user.getEmail()));
+
+        accessToken = loginResponse.as(UserToken.class).getAccessToken();
+
+    }
     @Step("Изъятие токена")
     public String getAccessToken(String email, String password) {
         Response loginResponse = userClient.login(email, password);

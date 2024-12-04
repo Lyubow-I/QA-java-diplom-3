@@ -46,26 +46,7 @@ import static org.junit.Assert.*;
         userClient = new UserClient();
 
     }
-    @Step("Вход под логиным")
-    private void login(UserRandom user) {
-        stellarBurgersPage.setEmail(user.getEmail());
-        stellarBurgersPage.setPassword(user.getPassword());
-        registrationPage.clickLoginButton();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        wait.until(ExpectedConditions.urlToBe(MAIN_PAGE));
 
-        Response loginResponse = userClient.login(user.getEmail(), user.getPassword());
-        loginResponse.then().assertThat()
-                .statusCode(200)
-                .contentType(ContentType.JSON)
-                .body("success", equalTo(true))
-                .body("accessToken", notNullValue())
-                .body("refreshToken", notNullValue())
-                .body("user.email", equalToIgnoringCase(user.getEmail()));
-
-        accessToken = loginResponse.as(UserToken.class).getAccessToken();
-
-    }
     @DisplayName("Вход по кнопке Войти в аккаунт на главной")
     @Test
     public void loginFromMainPageTest() {
@@ -73,7 +54,7 @@ import static org.junit.Assert.*;
         Response registerResponse = userApi.register(user);
         assertEquals(200, registerResponse.getStatusCode());
         constructorPage.clickLoginButton();
-        login(user);
+        userApi.login(user);
         assertNotNull("AccessToken не должен быть null", accessToken);
         assertNotNull("userApi не должен быть null", userApi);
     }
@@ -85,7 +66,7 @@ import static org.junit.Assert.*;
         Response registerResponse = userApi.register(user);
         assertEquals(200, registerResponse.getStatusCode());
         constructorPage.clickPersonalAccountButton();
-        login(user);
+        userApi.login(user);
         assertNotNull("AccessToken не должен быть null", accessToken);
         assertNotNull("userApi не должен быть null", userApi);
     }
@@ -99,7 +80,7 @@ import static org.junit.Assert.*;
         constructorPage.clickLoginButton();
         stellarBurgersPage.clickRegistrationButton();
         registrationPage.clickLoginButton();
-        login(user);
+        userApi.login(user);
         assertNotNull("AccessToken не должен быть null", accessToken);
         assertNotNull("userApi не должен быть null", userApi);
     }
@@ -113,7 +94,7 @@ import static org.junit.Assert.*;
         constructorPage.clickLoginButton();
         stellarBurgersPage.clickRecoverButton();
         registrationPage.clickLoginButton();
-        login(user);
+        userApi.login(user);
         assertNotNull("AccessToken не должен быть null", accessToken);
         assertNotNull("userApi не должен быть null", userApi);
 

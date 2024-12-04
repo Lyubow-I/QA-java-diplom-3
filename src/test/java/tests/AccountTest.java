@@ -47,29 +47,6 @@ public class AccountTest {
         registrationPage = new RegistrationPage(driver);
     }
 
-
-@Step("Вход под логиным")
-    private void login(UserRandom user) {
-        constructorPage.clickLoginButton();
-        stellarBurgersPage.setEmail(user.getEmail());
-        stellarBurgersPage.setPassword(user.getPassword());
-        registrationPage.clickLoginButton();
-
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        wait.until(ExpectedConditions.urlToBe(MAIN_PAGE));
-
-        Response loginResponse = userClient.login(user.getEmail(), user.getPassword());
-        loginResponse.then().assertThat()
-                .statusCode(200)
-                .contentType(ContentType.JSON)
-                .body("success", equalTo(true))
-                .body("accessToken", notNullValue())
-                .body("refreshToken", notNullValue())
-                .body("user.email", equalToIgnoringCase(user.getEmail()));
-
-        accessToken = loginResponse.as(UserToken.class).getAccessToken();
-    }
-
     private void waitUntilUrlIs(String url) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
         wait.until(ExpectedConditions.urlToBe(url));
@@ -83,7 +60,7 @@ public class AccountTest {
         assertEquals(200, registerResponse.getStatusCode());
 
         waitUntilUrlIs(MAIN_PAGE);
-        login(user);
+        userApi.login(user);
         constructorPage.clickPersonalAccountButton();
 
         waitUntilUrlIs(USER_PROFILE);
@@ -98,7 +75,7 @@ public class AccountTest {
         assertEquals(200, registerResponse.getStatusCode());
 
         waitUntilUrlIs(MAIN_PAGE);
-        login(user);
+        userApi.login(user);
         constructorPage.clickPersonalAccountButton();
         stellarBurgersPage.clickConstructorButton();
 
@@ -114,7 +91,7 @@ public class AccountTest {
         assertEquals(200, registerResponse.getStatusCode());
 
         waitUntilUrlIs(MAIN_PAGE);
-        login(user);
+        userApi.login(user);
         constructorPage.clickPersonalAccountButton();
         stellarBurgersPage.clickLogoButton();
 
